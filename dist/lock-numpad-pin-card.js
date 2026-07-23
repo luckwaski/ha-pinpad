@@ -34,7 +34,11 @@ class LockNumpadPinCard extends LitElement {
     }
 
     static getStubConfig() {
-        return { entity: "lock.front_door", name: "", icon: "", digits: 4 };
+        return { entity: "", name: "", icon: "", digits: 4 };
+    }
+
+    static getConfigElement() {
+        return document.createElement("lock-numpad-pin-card-editor");
     }
 
     setConfig(config) {
@@ -301,6 +305,68 @@ class LockNumpadPinCard extends LitElement {
       `;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Visual editor (the "Configuration" tab in the HA card dialog).
+// ---------------------------------------------------------------------------
+class LockNumpadPinCardEditor extends LitElement {
+    static get properties() {
+        return { hass: { type: Object }, _config: { state: true } };
+    }
+
+    setConfig(config) { this._config = { ...config }; }
+
+    _schema() {
+        return [
+            { name: "entity", required: true, selector: { entity: { domain: "lock" } } },
+            { name: "name", selector: { text: {} } },
+            { name: "icon", selector: { icon: {} } },
+            { name: "button_label", selector: { text: {} } },
+            { name: "digits", selector: { number: { min: 1, max: 8, mode: "box" } } },
+            { name: "verify_timeout", selector: { number: { min: 500, max: 10000, step: 100, mode: "box" } } },
+            { name: "show_state", selector: { boolean: {} } },
+            { name: "sound", selector: { boolean: {} } },
+            { name: "vibrate", selector: { boolean: {} } },
+        ];
+    }
+
+    _label(schema) {
+        const l = {
+            entity: "Lock entity",
+            name: "Name (optional — defaults to the entity name)",
+            icon: "Icon (optional)",
+            button_label: "Dialog label",
+            digits: "PIN length",
+            verify_timeout: "Verify timeout (ms)",
+            show_state: "Show state text under the name",
+            sound: "Sound (beep on ok / error)",
+            vibrate: "Vibrate on success (Android)",
+        };
+        return l[schema.name] || schema.name;
+    }
+
+    _valueChanged(ev) {
+        ev.stopPropagation();
+        this.dispatchEvent(new CustomEvent("config-changed", {
+            detail: { config: ev.detail.value },
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    render() {
+        if (!this.hass || !this._config) return html``;
+        return html`
+            <ha-form
+                .hass=${this.hass}
+                .data=${this._config}
+                .schema=${this._schema()}
+                .computeLabel=${(s) => this._label(s)}
+                @value-changed=${this._valueChanged}
+            ></ha-form>`;
+    }
+}
+customElements.define("lock-numpad-pin-card-editor", LockNumpadPinCardEditor);
 
 customElements.define("lock-numpad-pin-card", LockNumpadPinCard);
 
