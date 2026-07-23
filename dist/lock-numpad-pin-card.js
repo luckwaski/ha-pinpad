@@ -64,6 +64,15 @@ class LockNumpadPinCard extends LitElement {
 
     getCardSize() { return 1; }
 
+    // Sections-view grid sizing so the card can be resized in the "Layout" tab
+    // (modern HA: getGridOptions; older HA: getLayoutOptions).
+    getGridOptions() {
+        return { rows: 1, columns: 6, min_rows: 1, min_columns: 2 };
+    }
+    getLayoutOptions() {
+        return { grid_rows: 1, grid_columns: 6, grid_min_rows: 1, grid_min_columns: 2 };
+    }
+
     // Prime/resume the AudioContext on a key press (user gesture) so the later
     // success beep is allowed by the browser autoplay policy.
     _ensureAudio() {
