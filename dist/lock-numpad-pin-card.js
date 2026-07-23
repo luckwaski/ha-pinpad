@@ -239,9 +239,11 @@ class LockNumpadPinCard extends LitElement {
 
     static get styles() {
         return css`
-        :host { --button-size: 62px; }
-        /* --- card row (looks like a normal entity) --- */
-        .row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; cursor: pointer; }
+        :host { --button-size: 62px; display: block; height: 100%; }
+        ha-card { height: 100%; box-sizing: border-box; }
+        /* --- card row (looks like a normal entity; fills its grid cell so its
+           height matches standard tile/entity cards) --- */
+        .row { display: flex; align-items: center; gap: 14px; height: 100%; box-sizing: border-box; padding: 0 16px; min-height: 48px; cursor: pointer; }
         .row:hover { background: var(--secondary-background-color); }
         .icon-wrap {
           flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;
