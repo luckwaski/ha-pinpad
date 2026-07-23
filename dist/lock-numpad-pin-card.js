@@ -242,8 +242,8 @@ class LockNumpadPinCard extends LitElement {
 
         /* --- dialog / heading --- */
         ha-dialog {
-          --mdc-dialog-min-width: 320px;
-          --mdc-dialog-max-width: 360px;
+          --mdc-dialog-min-width: 290px !important;
+          --mdc-dialog-max-width: 320px !important;
           --dialog-content-padding: 0;
         }
         .heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -275,9 +275,9 @@ class LockNumpadPinCard extends LitElement {
 
         /* --- keypad --- */
         .pad {
-          display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
-          justify-items: center; align-items: center;
-          width: 100%; max-width: 300px; margin: 0 auto;
+          display: grid; grid-template-columns: repeat(3, var(--button-size)); gap: 12px;
+          justify-content: center; align-items: center;
+          margin: 0 auto;
         }
         .pad.checking { opacity: 0.5; pointer-events: none; }
         .pad-empty { width: var(--button-size); height: var(--button-size); }
@@ -294,11 +294,9 @@ class LockNumpadPinCard extends LitElement {
         .confirm-button { background: var(--success-color, #4CAF50) !important; color: white !important; }
 
         /* --- phone / fullscreen: keypad pinned to the BOTTOM, wider, one-handed --- */
-        @media (max-width: 600px) {
+        @media (max-width: 500px) {
           :host { --button-size: 68px; }
-          ha-dialog { --mdc-dialog-min-width: 100vw; --mdc-dialog-max-width: 100vw; }
           .content { justify-content: flex-end; min-height: calc(100dvh - 140px); padding: 8px 8px 32px; }
-          .pad { max-width: min(360px, 92vw); }
         }
       `;
     }
