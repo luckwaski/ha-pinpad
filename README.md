@@ -65,14 +65,25 @@ code_key: code
 | `action.data` | object | `{}` | Extra service data (e.g. `entity_id`). |
 | `code_key` | string | `code` | Service-data field that receives the typed PIN. |
 | `digits` | number | `4` | PIN length: auto-submits and draws that many dots. |
-| `button_label` | string | `Unlock` | Label on the card button / dialog heading. |
+| `button_label` | string | `Unlock` | Dialog heading. |
+| `icon` | string | — | MDI icon override (e.g. `mdi:door-closed-lock`); default = lock state icon. |
+| `name` | string | — | Row name; default = entity friendly name. |
+| `verify_timeout` | number | `2500` | ms to wait for the lock to unlock before treating it as a wrong PIN. |
+| `success_states` | list | `[unlocked, unlocking, open, opening]` | Entity states that count as success. |
+| `sound` | bool | `true` | Beep on success / error tone on wrong PIN (Web Audio). |
+| `vibrate` | bool | `true` | Phone vibration (Android companion / Chrome; iOS Safari ignores it). |
 
 ## Behaviour
 
+- The card renders as a normal entity row (state-coloured icon + name + live state);
+  tapping it opens the keypad.
 - Type `digits` digits → the PIN is sent automatically; `✓` submits manually, `✕` cancels.
-- The card does **not** know whether the PIN was correct (it does not hold the PIN).
-  A wrong PIN is rejected by the lock/device and the lock stays `LOCKED` — put a
-  normal lock tile next to the card to see `LOCKED` / `UNLOCKED`.
+- The card does **not** hold the PIN — it waits for the **lock entity to report a
+  fresh unlock**:
+  - **Success** (lock goes to a `success_states` value): short beep + phone vibration,
+    dialog closes.
+  - **Wrong PIN / no answer within `verify_timeout`**: the keypad **shakes**, plays a
+    low error tone, and clears for another try (dialog stays open).
 - The PIN travels HA → MQTT → device. Secure your MQTT/network accordingly; treat
   this as a convenience keypad, not a high-security access system.
 
