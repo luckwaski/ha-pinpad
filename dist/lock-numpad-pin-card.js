@@ -255,14 +255,34 @@ class LockNumpadPinCard extends LitElement {
           --mdc-dialog-max-width: 350px;
           --justify-action-buttons: space-between;
         }
-        .content { padding: 0 16px 16px; }
+        .content {
+          padding: 0 16px 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        /* Phone / fullscreen: full-width dialog + keypad pinned to the BOTTOM,
+           so it is comfortable to reach one-handed. */
+        @media (max-width: 600px) {
+          ha-dialog {
+            --mdc-dialog-min-width: 100vw;
+            --mdc-dialog-max-width: 100vw;
+          }
+          .content {
+            justify-content: flex-end;
+            min-height: calc(100dvh - 160px);
+            padding-bottom: 28px;
+          }
+        }
         .dots { display: flex; justify-content: center; margin: 8px 0 16px; gap: 8px; }
         .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--disabled-text-color); }
         .dot.filled { background: var(--primary-color); }
         .pad {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 8px;
+          gap: 12px;
+          justify-items: center;
+          width: 100%;
           max-width: 300px;
           margin: 0 auto;
         }
@@ -279,14 +299,14 @@ class LockNumpadPinCard extends LitElement {
           height: var(--button-size);
           border-radius: 50%;
           border: none;
-          background: var(--primary-color);
-          color: var(--text-primary-color);
+          background: rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.12);
+          color: var(--primary-text-color);
           font-size: 1.5em;
           cursor: pointer;
-          transition: all 0.2s ease-in-out;
+          transition: background 0.15s ease-in-out, transform 0.1s ease-in-out;
         }
-        .pad button:hover { background: var(--primary-color); filter: brightness(120%); }
-        .pad button:active { transform: scale(0.95); }
+        .pad button:hover { background: rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.20); }
+        .pad button:active { transform: scale(0.92); }
         .special-button { background: var(--secondary-color, var(--primary-color)) !important; font-weight: bold; }
         .close-button { background: var(--error-color, #f44336) !important; color: white !important; }
         .confirm-button { background: var(--success-color, #4CAF50) !important; color: white !important; }
