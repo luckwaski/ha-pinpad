@@ -1,0 +1,7 @@
+{
+  "name": "Lock Numpad PIN Card",
+  "content_in_root": false,
+  "filename": "lock-numpad-pin-card.js",
+  "render_readme": true,
+  "homeassistant": "2022.12.0"
+}
