@@ -68,6 +68,7 @@ code_key: code
 | `button_label` | string | `Unlock` | Dialog heading. |
 | `icon` | string | — | MDI icon override (e.g. `mdi:door-closed-lock`); default = lock state icon. |
 | `name` | string | — | Row name; default = entity friendly name. |
+| `show_state` | bool | `false` | Show the entity state text under the name (hidden by default — a momentary lock flips state for a split second). |
 | `verify_timeout` | number | `2500` | ms to wait for the lock to unlock before treating it as a wrong PIN. |
 | `success_states` | list | `[unlocked, unlocking, open, opening]` | Entity states that count as success. |
 | `sound` | bool | `true` | Beep on success / error tone on wrong PIN (Web Audio). |

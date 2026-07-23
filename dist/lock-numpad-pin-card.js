@@ -90,7 +90,7 @@ class LockNumpadPinCard extends LitElement {
     }
 
     _handlePress(input) {
-        if (input === "X") { this._cancel(); return; }
+        if (input === "X") { this._code = ""; return; }   // clear the entry (dialog stays open)
         if (this._awaiting) return;                 // waiting for the device -> ignore keys
         this._ensureAudio();
         if (input === "✓") { this._submit(); return; }
@@ -200,18 +200,23 @@ class LockNumpadPinCard extends LitElement {
 
           ${this._dialogOpen ? html`
             <ha-dialog open @closed=${() => this._cancel()} hideActions>
-              <div slot="heading">
-                ${this.config.button_label || "Unlock"}
-                ${this._generateDots()}
+              <div slot="heading" class="heading">
+                <span class="title">${this.config.button_label || "Unlock"}</span>
+                <button class="close-dialog" @click=${() => this._cancel()} aria-label="Close">✕</button>
               </div>
               <div class="content">
-                <div class="pad ${this._shake ? "shake" : ""} ${this._awaiting ? "checking" : ""}">
+                <div class="codefield ${this._shake ? "shake" : ""}">
+                  ${this._generateDots()}
+                </div>
+                <div class="pad ${this._awaiting ? "checking" : ""}">
                   ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => html`
                     <button @click=${() => this._handlePress(num)}>${num}</button>
                   `)}
-                    <button class="special-button close-button" @click=${() => this._handlePress("X")}>✕</button>
-                    <button @click=${() => this._handlePress("0")}>0</button>
-                    <button class="special-button confirm-button" @click=${() => this._handlePress("✓")}>✓</button>
+                  ${this._code.length > 0
+                    ? html`<button class="special-button clear-button" @click=${() => this._handlePress("X")}>✕</button>`
+                    : html`<span class="pad-empty"></span>`}
+                  <button @click=${() => this._handlePress("0")}>0</button>
+                  <button class="special-button confirm-button" @click=${() => this._handlePress("✓")}>✓</button>
                 </div>
               </div>
             </ha-dialog>
@@ -221,95 +226,80 @@ class LockNumpadPinCard extends LitElement {
 
     static get styles() {
         return css`
-        :host { --button-size: 60px; }
-        .row {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 12px 16px;
-          cursor: pointer;
-        }
+        :host { --button-size: 62px; }
+        /* --- card row (looks like a normal entity) --- */
+        .row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; cursor: pointer; }
         .row:hover { background: var(--secondary-background-color); }
         .icon-wrap {
-          flex: 0 0 auto;
-          width: 38px;
-          height: 38px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
           background: color-mix(in srgb, currentColor 20%, transparent);
           --mdc-icon-size: 22px;
         }
         .info { display: flex; flex-direction: column; min-width: 0; }
-        .name {
-          font-weight: 500;
-          color: var(--primary-text-color);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
+        .name { font-weight: 500; color: var(--primary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .state { font-size: 0.9em; color: var(--secondary-text-color); }
+
+        /* --- dialog / heading --- */
         ha-dialog {
-          --mdc-dialog-min-width: 300px;
-          --mdc-dialog-max-width: 350px;
-          --justify-action-buttons: space-between;
+          --mdc-dialog-min-width: 320px;
+          --mdc-dialog-max-width: 360px;
+          --dialog-content-padding: 0;
         }
-        .content {
-          padding: 0 16px 16px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
+        .heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .title { font-weight: 500; }
+        .close-dialog {
+          background: none; border: none; color: var(--secondary-text-color);
+          font-size: 1.25em; line-height: 1; cursor: pointer; padding: 6px 8px; border-radius: 50%;
         }
-        /* Phone / fullscreen: full-width dialog + keypad pinned to the BOTTOM,
-           so it is comfortable to reach one-handed. */
-        @media (max-width: 600px) {
-          ha-dialog {
-            --mdc-dialog-min-width: 100vw;
-            --mdc-dialog-max-width: 100vw;
-          }
-          .content {
-            justify-content: flex-end;
-            min-height: calc(100dvh - 160px);
-            padding-bottom: 28px;
-          }
+        .close-dialog:hover { background: rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.1); color: var(--primary-text-color); }
+
+        .content { padding: 8px 12px 16px; display: flex; flex-direction: column; align-items: center; }
+
+        /* --- code field (dots) --- */
+        .codefield { width: 100%; }
+        .codefield.shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97); }
+        .dots { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 4px 0 22px; min-height: 18px; }
+        .dot {
+          width: 14px; height: 14px; border-radius: 50%;
+          border: 2px solid var(--secondary-text-color); background: transparent; box-sizing: border-box;
+          transition: background .12s ease, border-color .12s ease, transform .12s ease;
         }
-        .dots { display: flex; justify-content: center; margin: 8px 0 16px; gap: 8px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--disabled-text-color); }
-        .dot.filled { background: var(--primary-color); }
-        .pad {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-          justify-items: center;
-          width: 100%;
-          max-width: 300px;
-          margin: 0 auto;
-        }
-        .pad.checking { opacity: 0.5; pointer-events: none; }
-        .pad.shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97); }
+        .dot.filled { background: var(--primary-color); border-color: var(--primary-color); transform: scale(1.05); }
         @keyframes shake {
           10%, 90% { transform: translateX(-2px); }
           20%, 80% { transform: translateX(4px); }
           30%, 50%, 70% { transform: translateX(-9px); }
           40%, 60% { transform: translateX(9px); }
         }
+
+        /* --- keypad --- */
+        .pad {
+          display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+          justify-items: center; align-items: center;
+          width: 100%; max-width: 300px; margin: 0 auto;
+        }
+        .pad.checking { opacity: 0.5; pointer-events: none; }
+        .pad-empty { width: var(--button-size); height: var(--button-size); }
         .pad button {
-          width: var(--button-size);
-          height: var(--button-size);
-          border-radius: 50%;
-          border: none;
+          width: var(--button-size); height: var(--button-size); border-radius: 50%; border: none;
           background: rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.12);
-          color: var(--primary-text-color);
-          font-size: 1.5em;
-          cursor: pointer;
-          transition: background 0.15s ease-in-out, transform 0.1s ease-in-out;
+          color: var(--primary-text-color); font-size: 1.5em; cursor: pointer;
+          transition: background .15s ease, transform .1s ease;
         }
         .pad button:hover { background: rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.20); }
         .pad button:active { transform: scale(0.92); }
-        .special-button { background: var(--secondary-color, var(--primary-color)) !important; font-weight: bold; }
-        .close-button { background: var(--error-color, #f44336) !important; color: white !important; }
+        .special-button { font-weight: bold; }
+        .clear-button { background: var(--error-color, #f44336) !important; color: white !important; }
         .confirm-button { background: var(--success-color, #4CAF50) !important; color: white !important; }
+
+        /* --- phone / fullscreen: keypad pinned to the BOTTOM, wider, one-handed --- */
+        @media (max-width: 600px) {
+          :host { --button-size: 68px; }
+          ha-dialog { --mdc-dialog-min-width: 100vw; --mdc-dialog-max-width: 100vw; }
+          .content { justify-content: flex-end; min-height: calc(100dvh - 140px); padding: 8px 8px 32px; }
+          .pad { max-width: min(360px, 92vw); }
+        }
       `;
     }
 }
