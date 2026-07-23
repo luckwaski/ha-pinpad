@@ -95,13 +95,37 @@ class LockNumpadPinCard extends LitElement {
       `;
     }
 
+    getCardSize() { return 1; }
+
     render() {
         if (!this.config) return html``;
+        const stateObj = (this.config.entity && this.hass) ? this.hass.states[this.config.entity] : null;
+        const name = this.config.name
+            ?? stateObj?.attributes?.friendly_name
+            ?? this.config.entity
+            ?? (this.config.button_label || "Lock");
+        const stateStr = stateObj
+            ? (this.hass.formatEntityState ? this.hass.formatEntityState(stateObj) : stateObj.state)
+            : "";
+        let iconColor = "var(--state-icon-color, var(--paper-item-icon-color, var(--primary-text-color)))";
+        if (stateObj?.state === "locked") iconColor = "var(--state-lock-locked-color, var(--success-color, #4caf50))";
+        else if (stateObj?.state === "unlocked") iconColor = "var(--state-lock-unlocked-color, var(--error-color, #f44336))";
+        else if (stateObj?.state === "jammed") iconColor = "var(--error-color, #f44336)";
         return html`
         <ha-card>
-          <button class="action-button" @click=${() => { this._code = ""; this._dialogOpen = true; }}>
-            ${this.config.button_label || "Unlock"}
-          </button>
+          <div class="row" @click=${() => { this._code = ""; this._dialogOpen = true; }}>
+            <div class="icon-wrap" style="color:${iconColor}">
+              ${this.config.icon
+                ? html`<ha-icon .icon=${this.config.icon}></ha-icon>`
+                : stateObj
+                    ? html`<ha-state-icon .hass=${this.hass} .stateObj=${stateObj}></ha-state-icon>`
+                    : html`<ha-icon icon="mdi:lock"></ha-icon>`}
+            </div>
+            <div class="info">
+              <span class="name">${name}</span>
+              ${stateStr ? html`<span class="state">${stateStr}</span>` : ""}
+            </div>
+          </div>
 
           ${this._dialogOpen ? html`
             <ha-dialog
@@ -134,20 +158,40 @@ class LockNumpadPinCard extends LitElement {
         :host {
           --button-size: 60px;
         }
-        .action-button {
-          width: 100%;
-          padding: 16px;
-          background: var(--primary-color);
-          border: none;
-          border-radius: var(--ha-card-border-radius, 4px);
-          color: var(--text-primary-color);
-          font-size: 1.2em;
+        .row {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 12px 16px;
           cursor: pointer;
-          transition: background-color 0.2s ease-in-out;
         }
-        .action-button:hover {
-          background: var(--primary-color);
-          filter: brightness(120%);
+        .row:hover { background: var(--secondary-background-color); }
+        .icon-wrap {
+          flex: 0 0 auto;
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: color-mix(in srgb, currentColor 20%, transparent);
+          --mdc-icon-size: 22px;
+        }
+        .info {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+        .name {
+          font-weight: 500;
+          color: var(--primary-text-color);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .state {
+          font-size: 0.9em;
+          color: var(--secondary-text-color);
         }
         ha-dialog {
           --mdc-dialog-min-width: 300px;
