@@ -50,6 +50,7 @@ class LockNumpadPinCard extends LitElement {
             digits: 4,
             code_key: "code",              // service-data field that receives the PIN
             verify_timeout: 2500,          // ms to wait for the lock to unlock -> else "wrong"
+            show_state: false,             // momentary lock -> state flips for a split second, hide it
             sound: true,
             vibrate: true,
             success_states: ["unlocked", "unlocking", "open", "opening"],
@@ -193,7 +194,7 @@ class LockNumpadPinCard extends LitElement {
             </div>
             <div class="info">
               <span class="name">${name}</span>
-              ${stateStr ? html`<span class="state">${stateStr}</span>` : ""}
+              ${(stateStr && this.config.show_state) ? html`<span class="state">${stateStr}</span>` : ""}
             </div>
           </div>
 
